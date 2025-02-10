@@ -1,3 +1,5 @@
+from .models import ExchangeRate
+from .models import ExchangeRateDOF
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
@@ -6,6 +8,9 @@ from django.http import JsonResponse
 from .forms import CustomUserCreationForm
 from django.contrib.auth import authenticate, login
 from django.core.cache import cache
+from datetime import datetime, date
+from bs4 import BeautifulSoup
+
 
 
 # Create your views here.
@@ -37,13 +42,12 @@ def exit(request):
     return redirect("home")
 
 def get_exchange():
-    cache_key='tipo_cambio_banxico'
-    type_exchange_data = cache.get(cache_key)
-    
-    if isinstance(type_exchange_data, dict) and "tipo_cambio" in type_exchange_data and "fecha" in type_exchange_data:
-        return type_exchange_data["tipo_cambio"], type_exchange_data["fecha"]
-    
-    
+    today = datetime.today().date()
+
+    exchange_entry = ExchangeRate.objects.filter(date=today).first()
+    if exchange_entry:
+        return exchange_entry.rate, exchange_entry.date.strftime("%Y-%m-%d")
+
     url = "https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF43718/datos/oportuno"
     headers = {"Bmx-Token": BANXICO_TOKEN}
     
@@ -55,24 +59,74 @@ def get_exchange():
             serie = data["bmx"]["series"][0]
             if "datos" in serie and serie["datos"]:
                 exchange_rate = float(serie["datos"][0]["dato"])
-                date = serie["datos"][0]["fecha"]
+                date_str = serie["datos"][0]["fecha"]  
                 
-                type_exchange_data = {"tipo_cambio": exchange_rate, "fecha": date}
+                date_obj = datetime.today().date().strftime(date_str, "%Y-%m-%d")
+                
+                exchange_entry, created = ExchangeRate.objects.get_or_create(
+                    date=date_obj, 
+                    defaults={"rate": exchange_rate}
+                    )
 
-                cache.set(cache_key, type_exchange_data, timeout=60 * 15)
-                
-                return exchange_rate, date
+                return exchange_entry.rate, exchange_entry.date.strftime("%Y-%m-%d")
     
     return None, None
 
+            
+def get_currency_exchange_dof():
+    url = "https://www.dof.gob.mx/indicadores.php"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    
+    response = requests.get(url, verify=False, headers=headers)
+    
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, "html.parser")
+        
+        tables = soup.find_all("table")
+
+        if len(tables) >= 15:  
+            table = tables[14]
+
+            paragraphs = table.find_all("p")
+            for p in paragraphs:
+                span = p.find("span", class_="tituloBloque4")
+                if span:
+                    indicator = span.get_text(strip=True).upper()
+                    value = p.get_text(strip=True).replace(indicator, "").strip()
+
+                    if "DOLAR" in indicator:
+                        currency_exchange = float(value.replace(',', ''))
+                        today = datetime.today().date().strftime("%Y-%m-%d")
+                        return currency_exchange, today
+        
+        print("No se encontró el valor del dólar.")
+    else:
+        print(f"Error al acceder a la página: {response.status_code}")
+        
+    return None, None
+                    
+    
+def save_currency_exchange_dof():
+    currency_exchange, dateDof = get_currency_exchange_dof()
+    
+    if currency_exchange is not None and dateDof is not None:
+        ExchangeRateDOF.objects.update_or_create(
+            date=dateDof,
+            defaults={'currency_exchange': currency_exchange}
+        )
+        return currency_exchange, dateDof
+    else:
+        return None, None
+     
 @login_required
 def exchange(request):
-    exchange_rate, date = get_exchange()
+    exchange_rate, date_obj = get_exchange()
+    last_exchange, last_date = save_currency_exchange_dof()
     
-    return render(request, "core/exchange.html", {
-        "date": date,
-        "exchange_rate": exchange_rate,
-    })
-
-            
-            
+    return JsonResponse({
+        "date": date_obj,
+        "exchange_BANXICO": exchange_rate,
+        'exchange_DOF': float(last_exchange) if last_exchange is not None else None
+    })     

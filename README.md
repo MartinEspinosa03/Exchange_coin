@@ -22,6 +22,7 @@ Instalación
 python3 -m venv env
 source env/bin/activate
 $ pip3 install crispy-bootstrap5
+$ pip install requests beautifulsoup4
 
 Ejecutar la aplicación
 python3 manage.py migration

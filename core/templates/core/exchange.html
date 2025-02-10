@@ -1,19 +1,7 @@
-{% extends 'core/base.html' %}
-
 {% block content %}
 
 {% if user.is_authenticated %}
-<div class="card text-center">
-    <div class="card-header">
-      Featured
-    </div>
-    <div class="card-body">
-      <h5 class="card-title">Cambio de moneda</h5>
-      <p class="card-text">Última actualización: <strong>{{ date }}</strong></p>
-      <p class="card-text">Tipo de cambio actual (USD → MXN): <strong>${{ exchange_rate | floatformat:2 }}</strong></p>
-      <a href="{% url 'home' %}" class="btn btn-primary">Regresar al Inicio</a>
-    </div>
-  </div>
-  {% endif %}
+
+{% endif %}
 
 {% endblock %}

@@ -20,6 +20,8 @@ El siguiente proyecto consta con una API de autenticación de usuarios y una bas
 
 # Pruebas automatizadas
 - El sistema cuenta con pruebas automatizadas para verificar la funcionalidad del registro de usuario.
+- El sistema cuenta con pruebas de validación de datos para el registro de usuario.
+- El sistema cuenta con pruebas con codigo 200 OK en la vista de inicio y cambio de moneda.
 
 # ----------------- Instalación ------------------
 # Crear un entorno virtual e instalar dependencias

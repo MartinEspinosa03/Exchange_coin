@@ -61,7 +61,7 @@ def get_exchange():
                 exchange_rate = float(serie["datos"][0]["dato"])
                 date_str = serie["datos"][0]["fecha"]  
                 
-                date_obj = datetime.today().date().strftime(date_str, "%Y-%m-%d")
+                date_obj = datetime.strptime(date_str, "%d/%m/%Y").date()
                 
                 exchange_entry, created = ExchangeRate.objects.get_or_create(
                     date=date_obj, 

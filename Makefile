@@ -5,7 +5,7 @@ SERVICE = django
 COMPOSE = docker-compose
 
 run:
-	sudo docker run -d -p 8000:8000 --name$(CONTAINER_NAME) $(IMAGE_NAME)
+	sudo docker run -d -p 8000:8000 --name $(CONTAINER_NAME) $(IMAGE_NAME)
 
 stop:
 	sudo docker stop $(CONTAINER_NAME) || true
@@ -17,3 +17,6 @@ up:
 
 down: 
 	sudo $(COMPOSE) down
+
+ps: 
+	sudo docker ps

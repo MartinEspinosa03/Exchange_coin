@@ -1,0 +1,6 @@
+# Ignorar entornos virtuales de Python
+venv/
+env/
+
+# Archivos de dependencias
+requirements.txt

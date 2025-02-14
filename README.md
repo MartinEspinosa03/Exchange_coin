@@ -41,3 +41,19 @@ El siguiente proyecto consta con una API de autenticación de usuarios y una bas
 - python3 manage.py migrate
   
 - python3 manage.py runserver
+
+# Comando para construir docker
+- sudo docker build -t devrrior/docker-django .
+
+# Comando para correr el proyecto en docker
+- sudo docker run -p 8000:8000 devrrior/docker-django
+
+# Comandos para correr con makefiile
+- make up
+- make run
+
+# Comando para correr el testing con selenium
+- python main.py
+
+*Usando makefile*
+- make test

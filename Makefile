@@ -11,7 +11,6 @@ stop:
 	sudo docker stop $(CONTAINER_NAME) || true
 	sudo docker rm $(CONTAINER_NAME) || true
 
-
 up:
 	sudo $(COMPOSE) up -d
 
@@ -20,3 +19,6 @@ down:
 
 ps: 
 	sudo docker ps
+
+test:
+	python main.py
